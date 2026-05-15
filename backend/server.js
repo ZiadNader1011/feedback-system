@@ -6,12 +6,17 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
+import feedbackRoutes from './routes/feedback.routes.js';
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+
+
+app.use('/api/feedback', feedbackRoutes);
+
 
 
 // REGISTER
@@ -97,56 +102,6 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-
-// CREATE FEEDBACK
-app.post('/api/feedback', async (req, res) => {
-  try {
-
-    const { message, rating, userId } = req.body;
-
-    const feedback = await prisma.feedback.create({
-      data: {
-        message,
-        rating,
-        userId
-      }
-    });
-
-    res.status(201).json(feedback);
-
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({
-      message: 'Server error'
-    });
-  }
-});
-
-
-// GET FEEDBACKS
-app.get('/api/feedback', async (req, res) => {
-  try {
-
-    const feedbacks = await prisma.feedback.findMany({
-      include: {
-        user: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
-
-    res.json(feedbacks);
-
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({
-      message: 'Server error'
-    });
-  }
-});
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);

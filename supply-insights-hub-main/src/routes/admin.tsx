@@ -51,7 +51,9 @@ function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (authed) setEntries(loadEntries());
+    if (authed) {
+  loadEntries().then(setEntries);
+}
   }, [authed]);
 
   const filtered = useMemo(() => {
@@ -143,11 +145,12 @@ function AdminPage() {
       <FeedbackDetail
         entry={selected}
         onBack={() => setSelected(null)}
-        onDelete={() => {
-          deleteEntry(selected.id);
-          setEntries(loadEntries());
-          setSelected(null);
-          toast.success("Response deleted");
+        onDelete={async () => {
+          await deleteEntry(selected.id);
+const updated = await loadEntries();
+setEntries(updated);
+setSelected(null);
+toast.success("Response deleted");
         }}
       />
     );
@@ -236,8 +239,8 @@ function AdminPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate font-semibold">
-                        {e.client.company || "Anonymous client"}
-                      </p>
+                      {e.client?.company || "Anonymous client"}
+</p>
                       {e.client.country && (
                         <Badge variant="secondary">{e.client.country}</Badge>
                       )}
@@ -271,11 +274,12 @@ function AdminPage() {
                       size="sm"
                       variant="outline"
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => {
+                      onClick={async () => {
                         if (confirm("Delete this response permanently?")) {
-                          deleteEntry(e.id);
-                          setEntries(loadEntries());
-                          toast.success("Response deleted");
+                        await deleteEntry(e.id);
+                       const updated = await loadEntries();
+                         setEntries(updated);
+                       toast.success("Response deleted");
                         }
                       }}
                       aria-label="Delete"
@@ -316,7 +320,6 @@ function FeedbackDetail({
           <div className="ml-auto flex gap-2">
             <Button onClick={() => window.print()}>
               <Printer className="mr-2 h-4 w-4" />
-              Print
             </Button>
             <Button
               variant="outline"

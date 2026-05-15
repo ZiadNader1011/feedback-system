@@ -66,32 +66,77 @@ export type FeedbackEntry = {
   recommend: "Yes" | "No" | "";
 };
 
-const KEY = "modern_feedback_entries_v1";
+const API_URL = "http://localhost:5000/api/feedback";
 
-export function loadEntries(): FeedbackEntry[] {
-  if (typeof window === "undefined") return [];
+export async function loadEntries(): Promise<FeedbackEntry[]> {
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error("Failed to fetch");
+    
+    const data = await response.json();
+
+    return data.map((item: any) => ({
+      ...item,
+      client: item.client || {
+        company: item.company || "",
+        country: item.country || "",
+        contact: item.contact || "",
+        email: item.email || "",
+        orderNumber: item.orderNumber || "",
+      },
+      comments: item.comments || {
+        liked: item.liked || "",
+        improve: item.improve || "",
+        suggestions: item.suggestions || "",
+      }
+    }));
+  } catch (error) {
+    console.error("Fetch Error:", error);
     return [];
   }
 }
 
-export function saveEntry(entry: FeedbackEntry) {
-  const list = loadEntries();
-  list.unshift(entry);
-  localStorage.setItem(KEY, JSON.stringify(list));
-}
+export async function saveEntry(entry: FeedbackEntry) {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...entry,
+        userId: 1 
+      }),
+    });
 
-export function deleteEntry(id: string) {
-  const list = loadEntries().filter((e) => e.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(list));
+    if (!response.ok) throw new Error("Failed to save");
+    return await response.json();
+  } catch (error) {
+    console.error("Save Error:", error);
+    throw error; 
+  }
+}
+export async function deleteEntry(id: string) {
+
+  try {
+
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete feedback");
+    }
+
+  } catch (error) {
+
+    console.error(error);
+  }
 }
 
 export function newId() {
-  return `FB-${Date.now().toString(36).toUpperCase()}-${Math.random()
+
+  return `FB-${Date.now()
+    .toString(36)
+    .toUpperCase()}-${Math.random()
     .toString(36)
     .slice(2, 6)
     .toUpperCase()}`;
