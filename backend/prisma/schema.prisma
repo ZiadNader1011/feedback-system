@@ -50,3 +50,9 @@ model Feedback {
   userId            Int
   user              User     @relation(fields: [userId], references: [id])
 }
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}

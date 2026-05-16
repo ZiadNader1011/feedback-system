@@ -8,6 +8,7 @@ import { PrismaClient } from '@prisma/client';
 dotenv.config();
 import feedbackRoutes from './routes/feedback.routes.js';
 
+
 const app = express();
 const prisma = new PrismaClient();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 
 
 app.use('/api/feedback', feedbackRoutes);
+
 
 
 
